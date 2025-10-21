@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>寻宝游戏：古老神庙的谜题</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* 基础全屏设置 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
         
         body {
@@ -22,10 +31,30 @@
             align-items: center;
             padding: 20px;
         }
-        
+
+        /* 主应用容器设置为全屏flex布局 */
+        #app {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 页面容器居中显示 */
+        .page-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
         .page {
             width: 100%;
-            max-width: 900px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,31 +63,47 @@
             transform: translateX(100%);
             position: absolute;
             pointer-events: none;
+            flex: 1;
         }
         
+        /* 确保每个页面内容居中 */
         .page.active {
             opacity: 1;
             transform: translateX(0);
             pointer-events: all;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
         
         .page.previous {
             transform: translateX(-100%);
         }
         
+        /* 容器内容居中 */
         .container {
             width: 100%;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            max-width: 90%;
+            max-height: 100%;
+            overflow: auto;
         }
         
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
             color: #ffd700;
         }
@@ -66,27 +111,41 @@
         h2 {
             margin-bottom: 15px;
             color: #f39c12;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+        }
+        
+        h3 {
+            margin: 15px 0;
+            color: #ffd700;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
         }
         
         p {
             margin-bottom: 20px;
             line-height: 1.6;
-            font-size: 1.1rem;
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
         }
         
+        /* 场景内容居中 */
         .scene {
-            height: 300px;
+            height: clamp(200px, 40vw, 300px);
             margin: 20px 0;
             border-radius: 10px;
             overflow: hidden;
             position: relative;
             background: #2c3e50;
             border: 3px solid #8b6914;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .scene-content {
-            position: absolute;
+            position: relative;
             width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -95,8 +154,8 @@
         }
         
         .character {
-            width: 60px;
-            height: 60px;
+            width: clamp(40px, 8vw, 60px);
+            height: clamp(40px, 8vw, 60px);
             background: #e74c3c;
             border-radius: 50%;
             position: absolute;
@@ -105,7 +164,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
         }
         
         .object {
@@ -114,88 +173,90 @@
         }
         
         .book {
-            width: 40px;
-            height: 50px;
+            width: clamp(30px, 6vw, 40px);
+            height: clamp(40px, 8vw, 50px);
             background: #8e44ad;
             border-radius: 5px;
-            top: 100px;
-            left: 200px;
+            top: clamp(70px, 15vw, 100px);
+            left: clamp(150px, 25vw, 200px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
         }
         
         .temple {
-            width: 120px;
-            height: 100px;
+            width: clamp(80px, 15vw, 120px);
+            height: clamp(70px, 12vw, 100px);
             background: #e74c3c;
             border-radius: 10px 10px 0 0;
-            bottom: 50px;
-            right: 150px;
+            bottom: clamp(30px, 8vw, 50px);
+            right: clamp(100px, 20vw, 150px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: clamp(24px, 6vw, 40px);
         }
         
         .cave {
-            width: 80px;
-            height: 60px;
+            width: clamp(60px, 10vw, 80px);
+            height: clamp(40px, 8vw, 60px);
             background: #34495e;
             border-radius: 40px 40px 0 0;
-            bottom: 50px;
-            left: 100px;
+            bottom: clamp(30px, 8vw, 50px);
+            left: clamp(70px, 12vw, 100px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: clamp(20px, 5vw, 30px);
         }
         
         .mountain {
-            width: 150px;
-            height: 120px;
+            width: clamp(100px, 18vw, 150px);
+            height: clamp(80px, 15vw, 120px);
             background: #2ecc71;
             clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            bottom: 50px;
-            left: 300px;
+            bottom: clamp(30px, 8vw, 50px);
+            left: clamp(200px, 35vw, 300px);
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            padding-bottom: 20px;
-            font-size: 30px;
+            padding-bottom: 10px;
+            font-size: clamp(20px, 5vw, 30px);
         }
         
         .treasure {
-            width: 60px;
-            height: 40px;
+            width: clamp(40px, 8vw, 60px);
+            height: clamp(30px, 6vw, 40px);
             background: #ffd700;
             border: 3px solid #b8860b;
             border-radius: 5px;
-            bottom: 80px;
-            right: 170px;
+            bottom: clamp(50px, 10vw, 80px);
+            right: clamp(120px, 22vw, 170px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
             opacity: 0;
             transform: scale(0);
         }
         
+        /* 控制按钮居中 */
         .controls {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         button {
-            padding: 12px 25px;
+            padding: clamp(10px, 2.5vw, 12px) clamp(15px, 4vw, 25px);
             background: linear-gradient(135deg, #f39c12, #e74c3c);
             border: none;
             border-radius: 50px;
             color: white;
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -218,11 +279,15 @@
             box-shadow: none;
         }
         
+        /* 进度条和消息日志居中 */
         .progress-container {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: 15px auto;
         }
         
         .progress-bar {
@@ -242,7 +307,7 @@
         
         .status-text {
             text-align: center;
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
             min-height: 60px;
             padding: 10px;
             background: rgba(0, 0, 0, 0.3);
@@ -256,10 +321,13 @@
             background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             padding: 15px;
-            height: 150px;
+            height: clamp(120px, 25vw, 150px);
             overflow-y: auto;
             margin-top: 20px;
             text-align: left;
+            width: 100%;
+            max-width: 500px;
+            margin: 15px auto;
         }
         
         .message {
@@ -269,6 +337,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 0 5px 5px 0;
             animation: fadeIn 0.5s ease;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
         }
         
         .success { border-left-color: #2ecc71; }
@@ -284,12 +353,324 @@
         
         .action-btn {
             padding: 8px 15px;
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
             background: linear-gradient(135deg, #3498db, #2980b9);
         }
         
         .animated-text {
             animation: fadeIn 1s ease;
+        }
+        
+        /* 地图容器居中 */
+        .map-container {
+            width: 100%;
+            height: clamp(300px, 60vw, 450px);
+            position: relative;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450"><rect width="800" height="450" fill="%231e3c72"/><path d="M100,350 L150,300 L200,330 L250,250 L300,300 L350,230 L400,270 L450,200 L500,250 L550,170 L600,230 L650,150 L700,200" stroke="%23395d33" stroke-width="10" fill="none"/><path d="M100,350 L150,300 L200,330 L250,250 L300,300 L350,230 L400,270 L450,200 L500,250 L550,170 L600,230 L650,150 L700,200" stroke="%235e9c4a" stroke-width="5" fill="none"/></svg>') no-repeat center center;
+            background-size: cover;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 3px solid #8b6914;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        
+        .location {
+            position: absolute;
+            width: clamp(70px, 12vw, 100px);
+            height: clamp(70px, 12vw, 100px);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(20px, 4vw, 30px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        
+        .location:hover {
+            transform: scale(1.15);
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #ffd700;
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .location-name {
+            font-size: clamp(10px, 2vw, 14px);
+            font-weight: bold;
+            margin-top: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            color: #fff;
+        }
+        
+        .location-library {
+            top: clamp(80px, 15vw, 120px);
+            left: clamp(80px, 15vw, 120px);
+        }
+        
+        .location-cave {
+            top: clamp(170px, 28vw, 250px);
+            left: clamp(190px, 31vw, 280px);
+        }
+        
+        .location-mountain {
+            top: clamp(70px, 12vw, 100px);
+            left: clamp(320px, 50vw, 480px);
+        }
+        
+        .location-temple {
+            top: clamp(190px, 31vw, 280px);
+            left: clamp(390px, 60vw, 580px);
+        }
+        
+        .location-treasure {
+            top: clamp(120px, 20vw, 180px);
+            left: clamp(450px, 70vw, 680px);
+            opacity: 0.5;
+        }
+        
+        .location-completed {
+            background: rgba(46, 204, 113, 0.4);
+            border-color: #2ecc71;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .location-available {
+            background: rgba(243, 156, 18, 0.4);
+            border-color: #f39c12;
+            animation: pulse 2s infinite;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+        
+        .location-locked {
+            background: rgba(127, 140, 141, 0.3);
+            border-color: #7f8c8d;
+            cursor: not-allowed;
+            filter: grayscale(0.7);
+        }
+        
+        /* 数学谜题样式 */
+        .puzzle-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .puzzle-question {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .puzzle-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .puzzle-option {
+            padding: 10px 20px;
+            background: rgba(52, 152, 219, 0.7);
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+        
+        .puzzle-option:hover {
+            background: rgba(52, 152, 219, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .puzzle-input {
+            padding: 10px;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            text-align: center;
+            width: clamp(120px, 20vw, 150px);
+            margin: 10px;
+        }
+        
+        .puzzle-submit {
+            padding: 10px 20px;
+            background: #2ecc71;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+        
+        .puzzle-submit:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        /* 调整音乐控制位置 */
+        .music-controls {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .music-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .music-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+        
+        .music-btn.muted {
+            background: rgba(231, 76, 60, 0.7);
+        }
+        
+        /* 调整导航栏位置，使其在顶部固定 */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .nav-title {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            background: rgba(243, 156, 18, 0.5);
+        }
+        
+        /* 用户管理和排行页面样式 */
+        .user-management, .ranking-page {
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        /* 表单居中 */
+        .user-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+            margin: 20px auto;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-label {
+            font-weight: bold;
+            color: #f39c12;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+        
+        .form-input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #34495e;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+        
+        /* 排名表格居中 */
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            overflow-x: auto;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .ranking-table table {
+            width: 100%;
+            min-width: 500px;
+        }
+        
+        .ranking-table th, .ranking-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+        
+        .ranking-table th {
+            background: rgba(243, 156, 18, 0.3);
+            color: #f39c12;
+        }
+        
+        .ranking-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .ranking-position {
+            font-weight: bold;
+            color: #ffd700;
         }
         
         @keyframes fadeIn {
@@ -318,6 +699,7 @@
         .pulse { animation: pulse 2s infinite; }
         .treasure-glow { animation: treasureGlow 2s infinite; }
         
+        /* 调整页面指示器位置 */
         .page-indicator {
             position: fixed;
             bottom: 20px;
@@ -342,13 +724,20 @@
             transform: scale(1.2);
         }
         
+        /* 移动设备优化 */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            body {
+                padding: 10px;
             }
             
-            h1 {
-                font-size: 1.8rem;
+            .page-container {
+                padding: 10px;
+                padding-top: 80px;
+                padding-bottom: 50px;
+            }
+            
+            .container {
+                padding: 15px;
             }
             
             .scene {
@@ -364,736 +753,1161 @@
             .book, .temple, .cave, .mountain {
                 transform: scale(0.8);
             }
+            
+            .map-container {
+                height: 350px;
+            }
+            
+            .location {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+            
+            .location-name {
+                font-size: 12px;
+            }
+            
+            .nav-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .puzzle-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .music-controls {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .page-indicator {
+                bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .map-container {
+                height: 250px;
+            }
+            
+            .location {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+            
+            .location-name {
+                font-size: 10px;
+            }
+            
+            .location-library {
+                top: 60px;
+                left: 50px;
+            }
+            
+            .location-cave {
+                top: 120px;
+                left: 120px;
+            }
+            
+            .location-mountain {
+                top: 50px;
+                left: 200px;
+            }
+            
+            .location-temple {
+                top: 130px;
+                left: 250px;
+            }
+            
+            .location-treasure {
+                top: 80px;
+                left: 300px;
+            }
+            
+            .ranking-table {
+                font-size: 0.8rem;
+            }
+            
+            .ranking-table th, .ranking-table td {
+                padding: 8px 10px;
+            }
+        }
+        
+        /* 横屏设备优化 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .scene {
+                height: 150px;
+            }
+            
+            .message-log {
+                height: 80px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .progress-container {
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 封面页 -->
-    <div class="page active" id="cover-page">
-        <div class="container">
-            <h1 class="animated-text">寻宝游戏：古老神庙的谜题</h1>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character pulse">🧭</div>
-                    <div class="object book">📚</div>
-                    <div class="object temple">🛕</div>
-                    <div class="object cave">🕳️</div>
-                    <div class="object mountain">⛰️</div>
-                    <div class="object treasure">💎</div>
-                </div>
-            </div>
-            <p>踏上冒险之旅，解开古老谜题，寻找传说中的宝藏！</p>
-            <div class="controls">
-                <button id="start-game">开始游戏</button>
-            </div>
+    <div id="app">
+        <!-- 导航栏组件 -->
+        <navigation-bar 
+            :current-page="currentPage" 
+            @navigate="navigateTo">
+        </navigation-bar>
+        
+        <!-- 音乐控制组件 -->
+        <music-controls 
+            :music-enabled="musicEnabled" 
+            :muted="muted"
+            @toggle-music="toggleMusic"
+            @toggle-mute="toggleMute">
+        </music-controls>
+        
+        <!-- 页面容器 -->
+        <div class="page-container">
+            <!-- 封面页 -->
+            <cover-page 
+                v-if="currentPage === 'cover-page'"
+                @start-game="navigateTo('library-page')"
+                @view-map="navigateTo('map-page')">
+            </cover-page>
+            
+            <!-- 地图页 -->
+            <map-page 
+                v-if="currentPage === 'map-page'"
+                :game-state="gameState"
+                @navigate="navigateTo">
+            </map-page>
+            
+            <!-- 图书馆页 -->
+            <library-page 
+                v-if="currentPage === 'library-page'"
+                :game-state="gameState"
+                @update-game-state="updateGameState"
+                @navigate="navigateTo">
+            </library-page>
+            
+            <!-- 洞穴页 -->
+            <cave-page 
+                v-if="currentPage === 'cave-page'"
+                :game-state="gameState"
+                @update-game-state="updateGameState"
+                @navigate="navigateTo">
+            </cave-page>
+            
+            <!-- 高山页 -->
+            <mountain-page 
+                v-if="currentPage === 'mountain-page'"
+                :game-state="gameState"
+                @update-game-state="updateGameState"
+                @navigate="navigateTo">
+            </mountain-page>
+            
+            <!-- 神庙页 -->
+            <temple-page 
+                v-if="currentPage === 'temple-page'"
+                :game-state="gameState"
+                @update-game-state="updateGameState"
+                @navigate="navigateTo">
+            </temple-page>
+            
+            <!-- 宝藏页 -->
+            <treasure-page 
+                v-if="currentPage === 'treasure-page'"
+                @play-again="resetGame">
+            </treasure-page>
+            
+            <!-- 用户管理页 -->
+            <user-management 
+                v-if="currentPage === 'user-management'"
+                :users="users"
+                @add-user="addUser"
+                @delete-user="deleteUser">
+            </user-management>
+            
+            <!-- 排行页 -->
+            <ranking-page 
+                v-if="currentPage === 'ranking-page'"
+                :rankings="rankings">
+            </ranking-page>
         </div>
-    </div>
-    
-    <!-- 图书馆页 -->
-    <div class="page" id="library-page">
-        <div class="container">
-            <h2>古老图书馆</h2>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character" id="library-character">🧭</div>
-                    <div class="object book pulse" id="ancient-book">📚</div>
-                </div>
-            </div>
-            <p>你来到了古老的图书馆，这里充满了尘封的书籍和神秘的气息。</p>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill-1"></div>
-                </div>
-                <div class="status-text" id="status-text-1">寻找线索...</div>
-            </div>
-            <div class="action-buttons" id="action-buttons-1">
-                <button class="action-btn" data-action="search">搜索书架</button>
-                <button class="action-btn" data-action="examine">检查古书</button>
-                <button class="action-btn" data-action="decode">解读地图</button>
-            </div>
-            <div class="message-log" id="message-log-1"></div>
-            <div class="controls">
-                <button class="nav-btn" data-target="cover-page">返回</button>
-                <button class="nav-btn" data-target="cave-page" id="next-from-library" disabled>前往洞穴</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 洞穴页 -->
-    <div class="page" id="cave-page">
-        <div class="container">
-            <h2>神秘洞穴</h2>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character" id="cave-character">🧭</div>
-                    <div class="object cave">🕳️</div>
-                </div>
-            </div>
-            <p>你进入了黑暗的洞穴，这里充满了未知的危险和秘密。</p>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill-2"></div>
-                </div>
-                <div class="status-text" id="status-text-2">探索洞穴...</div>
-            </div>
-            <div class="action-buttons" id="action-buttons-2">
-                <button class="action-btn" data-action="explore">深入探索</button>
-                <button class="action-btn" data-action="paintings">查看壁画</button>
-                <button class="action-btn" data-action="search-cave">寻找线索</button>
-            </div>
-            <div class="message-log" id="message-log-2"></div>
-            <div class="controls">
-                <button class="nav-btn" data-target="library-page">返回图书馆</button>
-                <button class="nav-btn" data-target="mountain-page" id="next-from-cave" disabled>前往高山</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 高山页 -->
-    <div class="page" id="mountain-page">
-        <div class="container">
-            <h2>高山之巅</h2>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character" id="mountain-character">🧭</div>
-                    <div class="object mountain">⛰️</div>
-                </div>
-            </div>
-            <p>你登上了高山之巅，从这里可以俯瞰整个山谷。</p>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill-3"></div>
-                </div>
-                <div class="status-text" id="status-text-3">寻找线索...</div>
-            </div>
-            <div class="action-buttons" id="action-buttons-3">
-                <button class="action-btn" data-action="search-mountain">搜索山顶</button>
-                <button class="action-btn" data-action="view">观察地形</button>
-                <button class="action-btn" data-action="find-path">寻找路径</button>
-            </div>
-            <div class="message-log" id="message-log-3"></div>
-            <div class="controls">
-                <button class="nav-btn" data-target="cave-page">返回洞穴</button>
-                <button class="nav-btn" data-target="temple-page" id="next-from-mountain" disabled>前往神庙</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 神庙页 -->
-    <div class="page" id="temple-page">
-        <div class="container">
-            <h2>古老神庙</h2>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character" id="temple-character">🧭</div>
-                    <div class="object temple">🛕</div>
-                    <div class="object treasure" id="treasure-chest">💎</div>
-                </div>
-            </div>
-            <p>你来到了古老的神庙，这里充满了神秘的能量。</p>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill-4"></div>
-                </div>
-                <div class="status-text" id="status-text-4">解开谜题...</div>
-            </div>
-            <div class="action-buttons" id="action-buttons-4">
-                <button class="action-btn" data-action="puzzle">解开谜题</button>
-                <button class="action-btn" data-action="key">寻找钥匙</button>
-                <button class="action-btn" data-action="open">打开宝箱</button>
-            </div>
-            <div class="message-log" id="message-log-4"></div>
-            <div class="controls">
-                <button class="nav-btn" data-target="mountain-page">返回高山</button>
-                <button class="nav-btn" data-target="treasure-page" id="next-from-temple" disabled>查看宝藏</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 宝藏页 -->
-    <div class="page" id="treasure-page">
-        <div class="container">
-            <h2>宝藏发现</h2>
-            <div class="scene">
-                <div class="scene-content">
-                    <div class="character">🧭</div>
-                    <div class="object treasure treasure-glow" style="opacity: 1; transform: scale(1.5);">💎</div>
-                </div>
-            </div>
-            <p>恭喜你！你成功找到了传说中的宝藏！</p>
-            <div class="message-log" id="message-log-5">
-                <div class="message success">你解开了所有谜题，找到了智慧之石！</div>
-                <div class="message success">这颗宝石将赋予你无尽的知识和智慧！</div>
-            </div>
-            <div class="controls">
-                <button id="play-again">再玩一次</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 页面指示器 -->
-    <div class="page-indicator">
-        <div class="page-dot active" data-page="cover-page"></div>
-        <div class="page-dot" data-page="library-page"></div>
-        <div class="page-dot" data-page="cave-page"></div>
-        <div class="page-dot" data-page="mountain-page"></div>
-        <div class="page-dot" data-page="temple-page"></div>
-        <div class="page-dot" data-page="treasure-page"></div>
+        
+        <!-- 页面指示器 -->
+        <page-indicator 
+            :current-page="currentPage"
+            :pages="pages"
+            @navigate="navigateTo">
+        </page-indicator>
     </div>
 
     <script>
         // 游戏状态管理
-        class TreasureGame {
-            constructor() {
-                this.currentPage = 'cover-page';
-                this.pages = [
-                    'cover-page', 
-                    'library-page', 
-                    'cave-page', 
-                    'mountain-page', 
-                    'temple-page', 
-                    'treasure-page'
-                ];
-                this.gameState = {
-                    hasMap: false,
-                    hasDecodedMap: false,
-                    hasCaveClue: false,
-                    hasMountainClue: false,
-                    hasKey: false,
-                    hasSolvedPuzzle: false,
-                    hasFoundTreasure: false
+        const gameState = {
+            hasMap: false,
+            hasDecodedMap: false,
+            hasCaveClue: false,
+            hasMountainClue: false,
+            hasKey: false,
+            hasSolvedPuzzle: false,
+            hasFoundTreasure: false,
+            currentPage: 'cover-page',
+            unlockedLocations: ['library-page'],
+            solvedPuzzles: {
+                cave: false,
+                mountain: false,
+                temple: false
+            }
+        };
+        
+        // 数学谜题
+        const puzzles = {
+            cave: {
+                question: "如果我有3个苹果，你给我2个，然后我吃掉1个，我还剩几个苹果？",
+                answer: 4,
+                options: [3, 4, 5, 6]
+            },
+            mountain: {
+                question: "15 + 27 等于多少？",
+                answer: 42,
+                options: [40, 41, 42, 43]
+            },
+            temple: {
+                question: "一个正方形的边长是5，它的面积是多少？",
+                answer: 25,
+                options: [20, 25, 30, 35]
+            }
+        };
+        
+        // 导航栏组件
+        Vue.component('navigation-bar', {
+            props: ['currentPage'],
+            template: `
+                <div class="nav-bar">
+                    <div class="nav-title">寻宝游戏：古老神庙的谜题</div>
+                    <div class="nav-links">
+                        <a href="#" class="nav-link" :class="{ active: currentPage === 'cover-page' }" 
+                           @click.prevent="$emit('navigate', 'cover-page')">首页</a>
+                        <a href="#" class="nav-link" :class="{ active: currentPage === 'map-page' }" 
+                           @click.prevent="$emit('navigate', 'map-page')">地图</a>
+                        <a href="#" class="nav-link" :class="{ active: currentPage === 'user-management' }" 
+                           @click.prevent="$emit('navigate', 'user-management')">用户管理</a>
+                        <a href="#" class="nav-link" :class="{ active: currentPage === 'ranking-page' }" 
+                           @click.prevent="$emit('navigate', 'ranking-page')">排行榜</a>
+                    </div>
+                </div>
+            `
+        });
+        
+        // 音乐控制组件
+        Vue.component('music-controls', {
+            props: ['musicEnabled', 'muted'],
+            template: `
+                <div class="music-controls">
+                    <div class="music-btn" @click="$emit('toggle-music')">♪</div>
+                    <div class="music-btn" :class="{ muted: muted }" @click="$emit('toggle-mute')">
+                        {{ muted ? '🔇' : '🔊' }}
+                    </div>
+                </div>
+            `
+        });
+        
+        // 页面指示器组件
+        Vue.component('page-indicator', {
+            props: ['currentPage', 'pages'],
+            template: `
+                <div class="page-indicator">
+                    <div v-for="page in pages" 
+                         :key="page.id"
+                         class="page-dot" 
+                         :class="{ active: currentPage === page.id }"
+                         :data-page="page.id"
+                         @click="$emit('navigate', page.id)">
+                    </div>
+                </div>
+            `
+        });
+        
+        // 封面页组件
+        Vue.component('cover-page', {
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h1 class="animated-text">寻宝游戏：古老神庙的谜题</h1>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character pulse">🧭</div>
+                                <div class="object book">📚</div>
+                                <div class="object temple">🛕</div>
+                                <div class="object cave">🕳️</div>
+                                <div class="object mountain">⛰️</div>
+                                <div class="object treasure">💎</div>
+                            </div>
+                        </div>
+                        <p>踏上冒险之旅，解开古老谜题，寻找传说中的宝藏！</p>
+                        <div class="controls">
+                            <button @click="$emit('start-game')">开始游戏</button>
+                            <button @click="$emit('view-map')">查看地图</button>
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+        
+        // 地图页组件
+        Vue.component('map-page', {
+            props: ['gameState'],
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>冒险地图</h2>
+                        <div class="map-container">
+                            <div v-for="location in locations" 
+                                 :key="location.id"
+                                 class="location" 
+                                 :class="[
+                                     location.class,
+                                     getLocationStatus(location.id)
+                                 ]"
+                                 :data-location="location.id"
+                                 @click="navigateToLocation(location.id)">
+                                {{ location.icon }}
+                                <div class="location-name">{{ location.name }}</div>
+                            </div>
+                        </div>
+                        <p>点击地图上的地点进行探索。已完成的地点会显示为绿色，可前往的地点会闪烁，未解锁的地点显示为灰色。</p>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'cover-page')">返回</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    locations: [
+                        { id: 'library-page', name: '古老图书馆', icon: '📚', class: 'location-library' },
+                        { id: 'cave-page', name: '神秘洞穴', icon: '🕳️', class: 'location-cave' },
+                        { id: 'mountain-page', name: '高山之巅', icon: '⛰️', class: 'location-mountain' },
+                        { id: 'temple-page', name: '古老神庙', icon: '🛕', class: 'location-temple' },
+                        { id: 'treasure-page', name: '宝藏之地', icon: '💎', class: 'location-treasure' }
+                    ]
                 };
-                
-                this.initializeEventListeners();
-                this.initializePageIndicator();
-            }
-            
-            initializeEventListeners() {
-                // 开始游戏按钮
-                document.getElementById('start-game').addEventListener('click', () => {
-                    this.navigateTo('library-page');
-                });
-                
-                // 再玩一次按钮
-                document.getElementById('play-again').addEventListener('click', () => {
-                    this.resetGame();
-                    this.navigateTo('cover-page');
-                });
-                
-                // 导航按钮
-                document.querySelectorAll('.nav-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const targetPage = e.target.getAttribute('data-target');
-                        this.navigateTo(targetPage);
-                    });
-                });
-                
-                // 各页面的动作按钮
-                this.initializeActionButtons();
-            }
-            
-            initializeActionButtons() {
-                // 图书馆页面动作
-                document.querySelectorAll('#action-buttons-1 button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const action = e.target.getAttribute('data-action');
-                        this.performLibraryAction(action);
-                    });
-                });
-                
-                // 洞穴页面动作
-                document.querySelectorAll('#action-buttons-2 button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const action = e.target.getAttribute('data-action');
-                        this.performCaveAction(action);
-                    });
-                });
-                
-                // 高山页面动作
-                document.querySelectorAll('#action-buttons-3 button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const action = e.target.getAttribute('data-action');
-                        this.performMountainAction(action);
-                    });
-                });
-                
-                // 神庙页面动作
-                document.querySelectorAll('#action-buttons-4 button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const action = e.target.getAttribute('data-action');
-                        this.performTempleAction(action);
-                    });
-                });
-            }
-            
-            initializePageIndicator() {
-                const dots = document.querySelectorAll('.page-dot');
-                dots.forEach(dot => {
-                    dot.addEventListener('click', () => {
-                        const page = dot.getAttribute('data-page');
-                        this.navigateTo(page);
-                    });
-                });
-            }
-            
-            navigateTo(pageId) {
-                // 更新页面指示器
-                document.querySelectorAll('.page-dot').forEach(dot => {
-                    dot.classList.remove('active');
-                    if (dot.getAttribute('data-page') === pageId) {
-                        dot.classList.add('active');
+            },
+            methods: {
+                getLocationStatus(locationId) {
+                    if (this.gameState.unlockedLocations.includes(locationId)) {
+                        if (locationId === 'treasure-page' && this.gameState.hasFoundTreasure) {
+                            return 'location-completed';
+                        } else if (locationId === this.gameState.currentPage) {
+                            return 'location-available';
+                        } else {
+                            return 'location-completed';
+                        }
+                    } else {
+                        return 'location-locked';
                     }
-                });
-                
-                // 隐藏当前页面
-                const currentPage = document.getElementById(this.currentPage);
-                currentPage.classList.remove('active');
-                currentPage.classList.add('previous');
-                
-                // 显示新页面
-                const newPage = document.getElementById(pageId);
-                newPage.classList.remove('previous');
-                newPage.classList.add('active');
-                
-                this.currentPage = pageId;
-                
-                // 为新页面添加动画
-                this.animatePageContent(pageId);
-            }
-            
-            animatePageContent(pageId) {
-                switch(pageId) {
-                    case 'library-page':
-                        this.animateLibrary();
-                        break;
-                    case 'cave-page':
-                        this.animateCave();
-                        break;
-                    case 'mountain-page':
-                        this.animateMountain();
-                        break;
-                    case 'temple-page':
-                        this.animateTemple();
-                        break;
-                    case 'treasure-page':
-                        this.animateTreasure();
-                        break;
+                },
+                navigateToLocation(locationId) {
+                    if (this.gameState.unlockedLocations.includes(locationId)) {
+                        this.$emit('navigate', locationId);
+                    }
                 }
             }
-            
-            animateLibrary() {
-                const character = document.getElementById('library-character');
-                const book = document.getElementById('ancient-book');
-                
-                // 重置位置
-                character.style.left = '100px';
-                character.style.top = '150px';
-                
-                // 动画：角色移动到书的位置
-                setTimeout(() => {
-                    character.style.left = '180px';
-                    character.style.top = '120px';
-                    character.classList.add('bounce');
+        });
+        
+        // 图书馆页组件
+        Vue.component('library-page', {
+            props: ['gameState'],
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>古老图书馆</h2>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character" id="library-character">🧭</div>
+                                <div class="object book pulse" id="ancient-book">📚</div>
+                            </div>
+                        </div>
+                        <p>你来到了古老的图书馆，这里充满了尘封的书籍和神秘的气息。</p>
+                        <progress-bar 
+                            :progress="progress"
+                            :status-text="statusText">
+                        </progress-bar>
+                        <action-buttons 
+                            :actions="actions"
+                            @perform-action="performAction">
+                        </action-buttons>
+                        <message-log :messages="messages"></message-log>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'map-page')">返回地图</button>
+                            <button class="nav-btn" @click="$emit('navigate', 'cave-page')" :disabled="!canProceed">前往洞穴</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    actions: [
+                        { id: 'search', text: '搜索书架' },
+                        { id: 'examine', text: '检查古书' },
+                        { id: 'decode', text: '解读地图' }
+                    ],
+                    messages: [],
+                    progress: 0,
+                    statusText: '寻找线索...'
+                };
+            },
+            computed: {
+                canProceed() {
+                    return this.gameState.hasMap && this.gameState.hasDecodedMap;
+                }
+            },
+            methods: {
+                performAction(action) {
+                    let message;
                     
-                    setTimeout(() => {
-                        character.classList.remove('bounce');
-                    }, 500);
-                }, 500);
+                    switch(action) {
+                        case 'search':
+                            message = "你在书架上找到了一张古老的地图！";
+                            this.$emit('update-game-state', { hasMap: true });
+                            this.progress = 33;
+                            this.statusText = "找到地图！";
+                            break;
+                        case 'examine':
+                            message = "你发现古书中记载了神庙的秘密入口！";
+                            this.$emit('update-game-state', { hasDecodedMap: true });
+                            this.progress = 66;
+                            this.statusText = "获得重要线索！";
+                            break;
+                        case 'decode':
+                            if (this.gameState.hasMap) {
+                                message = "你成功解读了地图，发现宝藏藏在神庙中！";
+                                this.progress = 100;
+                                this.statusText = "地图解读完成！";
+                                
+                                // 解锁洞穴
+                                if (!this.gameState.unlockedLocations.includes('cave-page')) {
+                                    this.$emit('update-game-state', { 
+                                        unlockedLocations: [...this.gameState.unlockedLocations, 'cave-page'] 
+                                    });
+                                }
+                            } else {
+                                message = "你需要先找到地图才能进行解读！";
+                                this.addMessage(message, 'danger');
+                                return;
+                            }
+                            break;
+                    }
+                    
+                    this.addMessage(message, 'success');
+                },
+                addMessage(text, type = '') {
+                    this.messages.push({ text, type, timestamp: new Date() });
+                }
+            },
+            mounted() {
+                // 恢复进度
+                if (this.gameState.hasMap) this.progress = 33;
+                if (this.gameState.hasDecodedMap) this.progress = 66;
+                if (this.gameState.hasMap && this.gameState.hasDecodedMap) this.progress = 100;
             }
-            
-            animateCave() {
-                const character = document.getElementById('cave-character');
-                
-                // 重置位置
-                character.style.left = '300px';
-                character.style.top = '100px';
-                
-                // 动画：角色移动到洞穴
-                setTimeout(() => {
-                    character.style.left = '150px';
-                    character.style.top = '150px';
-                    character.classList.add('bounce');
-                    
-                    setTimeout(() => {
-                        character.classList.remove('bounce');
-                    }, 500);
-                }, 500);
-            }
-            
-            animateMountain() {
-                const character = document.getElementById('mountain-character');
-                
-                // 重置位置
-                character.style.left = '100px';
-                character.style.top = '100px';
-                
-                // 动画：角色移动到山顶
-                setTimeout(() => {
-                    character.style.left = '400px';
-                    character.style.top = '80px';
-                    character.classList.add('bounce');
-                    
-                    setTimeout(() => {
-                        character.classList.remove('bounce');
-                    }, 500);
-                }, 500);
-            }
-            
-            animateTemple() {
-                const character = document.getElementById('temple-character');
-                const treasure = document.getElementById('treasure-chest');
-                
-                // 重置位置
-                character.style.left = '100px';
-                character.style.top = '150px';
-                treasure.style.opacity = '0';
-                treasure.style.transform = 'scale(0)';
-                
-                // 动画：角色移动到神庙
-                setTimeout(() => {
-                    character.style.left = '500px';
-                    character.style.top = '150px';
-                    character.classList.add('bounce');
-                    
-                    setTimeout(() => {
-                        character.classList.remove('bounce');
+        });
+        
+        // 洞穴页组件
+        Vue.component('cave-page', {
+            props: ['gameState'],
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>神秘洞穴</h2>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character" id="cave-character">🧭</div>
+                                <div class="object cave">🕳️</div>
+                            </div>
+                        </div>
+                        <p>你进入了黑暗的洞穴，这里充满了未知的危险和秘密。</p>
                         
-                        // 显示宝藏
-                        if (this.gameState.hasKey && this.gameState.hasSolvedPuzzle) {
-                            treasure.style.opacity = '1';
-                            treasure.style.transform = 'scale(1)';
-                            treasure.classList.add('pulse');
-                        }
-                    }, 500);
-                }, 500);
-            }
-            
-            animateTreasure() {
-                const treasure = document.querySelector('#treasure-page .treasure');
-                treasure.classList.add('treasure-glow');
-            }
-            
-            async performLibraryAction(action) {
-                const messageLog = document.getElementById('message-log-1');
-                const nextButton = document.getElementById('next-from-library');
-                const progressFill = document.getElementById('progress-fill-1');
-                const statusText = document.getElementById('status-text-1');
-                
-                // 禁用所有动作按钮
-                document.querySelectorAll('#action-buttons-1 button').forEach(btn => {
-                    btn.disabled = true;
-                });
-                
-                // 模拟延迟
-                await this.delay(1000);
-                
-                let message;
-                
-                switch(action) {
-                    case 'search':
-                        message = "你在书架上找到了一张古老的地图！";
-                        this.gameState.hasMap = true;
-                        progressFill.style.width = '33%';
-                        statusText.textContent = "找到地图！";
-                        break;
-                    case 'examine':
-                        message = "你发现古书中记载了神庙的秘密入口！";
-                        this.gameState.hasDecodedMap = true;
-                        progressFill.style.width = '66%';
-                        statusText.textContent = "获得重要线索！";
-                        break;
-                    case 'decode':
-                        if (this.gameState.hasMap) {
-                            message = "你成功解读了地图，发现宝藏藏在神庙中！";
-                            progressFill.style.width = '100%';
-                            statusText.textContent = "地图解读完成！";
-                            nextButton.disabled = false;
-                        } else {
-                            message = "你需要先找到地图才能进行解读！";
-                            this.addMessage(messageLog, message, 'danger');
-                            
-                            // 重新启用按钮
-                            document.querySelectorAll('#action-buttons-1 button').forEach(btn => {
-                                btn.disabled = false;
-                            });
-                            return;
-                        }
-                        break;
-                }
-                
-                this.addMessage(messageLog, message, 'success');
-                
-                // 如果已经完成所有条件，启用继续按钮
-                if (this.gameState.hasMap && this.gameState.hasDecodedMap) {
-                    nextButton.disabled = false;
-                }
-                
-                // 重新启用按钮
-                document.querySelectorAll('#action-buttons-1 button').forEach(btn => {
-                    btn.disabled = false;
-                });
-            }
-            
-            async performCaveAction(action) {
-                const messageLog = document.getElementById('message-log-2');
-                const nextButton = document.getElementById('next-from-cave');
-                const progressFill = document.getElementById('progress-fill-2');
-                const statusText = document.getElementById('status-text-2');
-                
-                // 禁用所有动作按钮
-                document.querySelectorAll('#action-buttons-2 button').forEach(btn => {
-                    btn.disabled = true;
-                });
-                
-                // 模拟延迟
-                await this.delay(1000);
-                
-                let message;
-                
-                switch(action) {
-                    case 'explore':
-                        message = "你在洞穴深处发现了一幅神秘的壁画！";
-                        this.gameState.hasCaveClue = true;
-                        progressFill.style.width = '33%';
-                        statusText.textContent = "发现壁画！";
-                        break;
-                    case 'paintings':
-                        if (this.gameState.hasCaveClue) {
-                            message = "壁画显示宝藏藏在神庙深处！";
-                            progressFill.style.width = '66%';
-                            statusText.textContent = "解读壁画成功！";
-                        } else {
-                            message = "你需要先探索洞穴找到壁画！";
-                            this.addMessage(messageLog, message, 'danger');
-                            
-                            // 重新启用按钮
-                            document.querySelectorAll('#action-buttons-2 button').forEach(btn => {
-                                btn.disabled = false;
-                            });
-                            return;
-                        }
-                        break;
-                    case 'search-cave':
-                        message = "你在洞穴中找到了一把古老的钥匙！";
-                        this.gameState.hasKey = true;
-                        progressFill.style.width = '100%';
-                        statusText.textContent = "找到钥匙！";
-                        nextButton.disabled = false;
-                        break;
-                }
-                
-                this.addMessage(messageLog, message, 'success');
-                
-                // 如果已经完成所有条件，启用继续按钮
-                if (this.gameState.hasCaveClue && this.gameState.hasKey) {
-                    nextButton.disabled = false;
-                }
-                
-                // 重新启用按钮
-                document.querySelectorAll('#action-buttons-2 button').forEach(btn => {
-                    btn.disabled = false;
-                });
-            }
-            
-            async performMountainAction(action) {
-                const messageLog = document.getElementById('message-log-3');
-                const nextButton = document.getElementById('next-from-mountain');
-                const progressFill = document.getElementById('progress-fill-3');
-                const statusText = document.getElementById('status-text-3');
-                
-                // 禁用所有动作按钮
-                document.querySelectorAll('#action-buttons-3 button').forEach(btn => {
-                    btn.disabled = true;
-                });
-                
-                // 模拟延迟
-                await this.delay(1000);
-                
-                let message;
-                
-                switch(action) {
-                    case 'search-mountain':
-                        message = "你在山顶找到了神庙的隐藏入口！";
-                        this.gameState.hasMountainClue = true;
-                        progressFill.style.width = '33%';
-                        statusText.textContent = "发现入口！";
-                        break;
-                    case 'view':
-                        if (this.gameState.hasMountainClue) {
-                            message = "你从山顶看到了神庙的全貌！";
-                            progressFill.style.width = '66%';
-                            statusText.textContent = "观察完成！";
-                        } else {
-                            message = "你需要先搜索山顶找到入口！";
-                            this.addMessage(messageLog, message, 'danger');
-                            
-                            // 重新启用按钮
-                            document.querySelectorAll('#action-buttons-3 button').forEach(btn => {
-                                btn.disabled = false;
-                            });
-                            return;
-                        }
-                        break;
-                    case 'find-path':
-                        message = "你找到了一条通往神庙的秘密路径！";
-                        progressFill.style.width = '100%';
-                        statusText.textContent = "找到路径！";
-                        nextButton.disabled = false;
-                        break;
-                }
-                
-                this.addMessage(messageLog, message, 'success');
-                
-                // 如果已经完成所有条件，启用继续按钮
-                if (this.gameState.hasMountainClue) {
-                    nextButton.disabled = false;
-                }
-                
-                // 重新启用按钮
-                document.querySelectorAll('#action-buttons-3 button').forEach(btn => {
-                    btn.disabled = false;
-                });
-            }
-            
-            async performTempleAction(action) {
-                const messageLog = document.getElementById('message-log-4');
-                const nextButton = document.getElementById('next-from-temple');
-                const progressFill = document.getElementById('progress-fill-4');
-                const statusText = document.getElementById('status-text-4');
-                const treasure = document.getElementById('treasure-chest');
-                
-                // 禁用所有动作按钮
-                document.querySelectorAll('#action-buttons-4 button').forEach(btn => {
-                    btn.disabled = true;
-                });
-                
-                // 模拟延迟
-                await this.delay(1000);
-                
-                let message;
-                
-                switch(action) {
-                    case 'puzzle':
-                        message = "你成功解开了神庙的古老谜题！";
-                        this.gameState.hasSolvedPuzzle = true;
-                        progressFill.style.width = '33%';
-                        statusText.textContent = "谜题解开！";
-                        break;
-                    case 'key':
-                        if (this.gameState.hasKey) {
-                            message = "你已经有了钥匙！";
-                            progressFill.style.width = '66%';
-                            statusText.textContent = "钥匙已准备！";
-                        } else {
-                            message = "你需要在洞穴中寻找钥匙！";
-                            this.addMessage(messageLog, message, 'danger');
-                            
-                            // 重新启用按钮
-                            document.querySelectorAll('#action-buttons-4 button').forEach(btn => {
-                                btn.disabled = false;
-                            });
-                            return;
-                        }
-                        break;
-                    case 'open':
-                        if (this.gameState.hasKey && this.gameState.hasSolvedPuzzle) {
-                            message = "宝箱打开了！里面是传说中的智慧之石！";
-                            progressFill.style.width = '100%';
-                            statusText.textContent = "宝藏找到！";
-                            
-                            // 显示宝藏动画
-                            treasure.style.opacity = '1';
-                            treasure.style.transform = 'scale(1)';
-                            treasure.classList.add('pulse');
-                            
-                            // 启用继续按钮
-                            nextButton.disabled = false;
-                        } else {
-                            message = "你需要先找到钥匙并解开谜题才能打开宝箱！";
-                            this.addMessage(messageLog, message, 'danger');
-                            
-                            // 重新启用按钮
-                            document.querySelectorAll('#action-buttons-4 button').forEach(btn => {
-                                btn.disabled = false;
-                            });
-                            return;
-                        }
-                        break;
-                }
-                
-                this.addMessage(messageLog, message, 'success');
-                
-                // 如果已经完成所有条件，启用继续按钮
-                if (this.gameState.hasKey && this.gameState.hasSolvedPuzzle && action === 'open') {
-                    nextButton.disabled = false;
-                }
-                
-                // 重新启用按钮
-                document.querySelectorAll('#action-buttons-4 button').forEach(btn => {
-                    btn.disabled = false;
-                });
-            }
-            
-            addMessage(messageLog, text, type = '') {
-                const messageElement = document.createElement('div');
-                messageElement.className = `message ${type}`;
-                messageElement.textContent = text;
-                messageLog.appendChild(messageElement);
-                messageLog.scrollTop = messageLog.scrollHeight;
-            }
-            
-            resetGame() {
-                // 重置游戏状态
-                this.gameState = {
-                    hasMap: false,
-                    hasDecodedMap: false,
-                    hasCaveClue: false,
-                    hasMountainClue: false,
-                    hasKey: false,
-                    hasSolvedPuzzle: false,
-                    hasFoundTreasure: false
+                        <!-- 数学谜题 -->
+                        <puzzle-component 
+                            v-if="showPuzzle"
+                            :puzzle="puzzles.cave"
+                            @submit-answer="checkPuzzleAnswer">
+                        </puzzle-component>
+                        
+                        <progress-bar 
+                            :progress="progress"
+                            :status-text="statusText">
+                        </progress-bar>
+                        <action-buttons 
+                            :actions="actions"
+                            @perform-action="performAction">
+                        </action-buttons>
+                        <message-log :messages="messages"></message-log>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'map-page')">返回地图</button>
+                            <button class="nav-btn" @click="$emit('navigate', 'mountain-page')" :disabled="!canProceed">前往高山</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    puzzles,
+                    actions: [
+                        { id: 'explore', text: '深入探索' },
+                        { id: 'paintings', text: '查看壁画' },
+                        { id: 'search-cave', text: '寻找线索' }
+                    ],
+                    messages: [],
+                    progress: 0,
+                    statusText: '探索洞穴...',
+                    showPuzzle: false
                 };
-                
-                // 重置进度条
-                document.querySelectorAll('.progress-fill').forEach(fill => {
-                    fill.style.width = '0%';
-                });
-                
-                // 重置状态文本
-                document.querySelectorAll('.status-text').forEach(text => {
-                    if (text.id === 'status-text-1') text.textContent = '寻找线索...';
-                    if (text.id === 'status-text-2') text.textContent = '探索洞穴...';
-                    if (text.id === 'status-text-3') text.textContent = '寻找线索...';
-                    if (text.id === 'status-text-4') text.textContent = '解开谜题...';
-                });
-                
-                // 清空消息日志
-                document.querySelectorAll('.message-log').forEach(log => {
-                    if (log.id !== 'message-log-5') log.innerHTML = '';
-                });
-                
-                // 禁用继续按钮
-                document.querySelectorAll('.nav-btn[data-target]').forEach(btn => {
-                    if (!btn.getAttribute('data-target').includes('cover-page') && 
-                        !btn.getAttribute('data-target').includes('library-page')) {
-                        btn.disabled = true;
+            },
+            computed: {
+                canProceed() {
+                    return this.gameState.hasCaveClue && this.gameState.hasKey;
+                }
+            },
+            methods: {
+                performAction(action) {
+                    let message;
+                    
+                    switch(action) {
+                        case 'explore':
+                            message = "你在洞穴深处发现了一幅神秘的壁画！";
+                            this.$emit('update-game-state', { hasCaveClue: true });
+                            this.progress = 33;
+                            this.statusText = "发现壁画！";
+                            break;
+                        case 'paintings':
+                            if (this.gameState.hasCaveClue) {
+                                message = "壁画显示宝藏藏在神庙深处！";
+                                this.progress = 66;
+                                this.statusText = "解读壁画成功！";
+                            } else {
+                                message = "你需要先探索洞穴找到壁画！";
+                                this.addMessage(message, 'danger');
+                                return;
+                            }
+                            break;
+                        case 'search-cave':
+                            if (!this.gameState.solvedPuzzles.cave) {
+                                this.showPuzzle = true;
+                                message = "你发现了一个古老的数学谜题！解谜后才能找到钥匙。";
+                            } else {
+                                message = "你已经找到了钥匙！";
+                            }
+                            break;
                     }
-                });
-                
-                // 启用动作按钮
-                document.querySelectorAll('.action-btn').forEach(btn => {
-                    btn.disabled = false;
-                });
+                    
+                    this.addMessage(message, 'success');
+                },
+                checkPuzzleAnswer(answer) {
+                    if (parseInt(answer) === this.puzzles.cave.answer) {
+                        this.addMessage("答案正确！谜题解开了！", 'success');
+                        this.showPuzzle = false;
+                        
+                        this.$emit('update-game-state', { 
+                            solvedPuzzles: { ...this.gameState.solvedPuzzles, cave: true },
+                            hasKey: true
+                        });
+                        
+                        this.progress = 100;
+                        
+                        // 解锁高山
+                        if (!this.gameState.unlockedLocations.includes('mountain-page')) {
+                            this.$emit('update-game-state', { 
+                                unlockedLocations: [...this.gameState.unlockedLocations, 'mountain-page'] 
+                            });
+                        }
+                    } else {
+                        this.addMessage("答案错误，请再试一次！", 'danger');
+                    }
+                },
+                addMessage(text, type = '') {
+                    this.messages.push({ text, type, timestamp: new Date() });
+                }
+            },
+            mounted() {
+                // 恢复进度
+                if (this.gameState.hasCaveClue) this.progress = 33;
+                if (this.gameState.hasKey) this.progress = 100;
             }
-            
-            delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
+        });
+        
+        // 高山页组件
+        Vue.component('mountain-page', {
+            props: ['gameState'],
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>高山之巅</h2>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character" id="mountain-character">🧭</div>
+                                <div class="object mountain">⛰️</div>
+                            </div>
+                        </div>
+                        <p>你登上了高山之巅，从这里可以俯瞰整个山谷。</p>
+                        
+                        <!-- 数学谜题 -->
+                        <puzzle-component 
+                            v-if="showPuzzle"
+                            :puzzle="puzzles.mountain"
+                            @submit-answer="checkPuzzleAnswer">
+                        </puzzle-component>
+                        
+                        <progress-bar 
+                            :progress="progress"
+                            :status-text="statusText">
+                        </progress-bar>
+                        <action-buttons 
+                            :actions="actions"
+                            @perform-action="performAction">
+                        </action-buttons>
+                        <message-log :messages="messages"></message-log>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'map-page')">返回地图</button>
+                            <button class="nav-btn" @click="$emit('navigate', 'temple-page')" :disabled="!canProceed">前往神庙</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    puzzles,
+                    actions: [
+                        { id: 'search-mountain', text: '搜索山顶' },
+                        { id: 'view', text: '观察地形' },
+                        { id: 'find-path', text: '寻找路径' }
+                    ],
+                    messages: [],
+                    progress: 0,
+                    statusText: '寻找线索...',
+                    showPuzzle: false
+                };
+            },
+            computed: {
+                canProceed() {
+                    return this.gameState.hasMountainClue;
+                }
+            },
+            methods: {
+                performAction(action) {
+                    let message;
+                    
+                    switch(action) {
+                        case 'search-mountain':
+                            message = "你在山顶找到了神庙的隐藏入口！";
+                            this.$emit('update-game-state', { hasMountainClue: true });
+                            this.progress = 33;
+                            this.statusText = "发现入口！";
+                            break;
+                        case 'view':
+                            if (this.gameState.hasMountainClue) {
+                                message = "你从山顶看到了神庙的全貌！";
+                                this.progress = 66;
+                                this.statusText = "观察完成！";
+                            } else {
+                                message = "你需要先搜索山顶找到入口！";
+                                this.addMessage(message, 'danger');
+                                return;
+                            }
+                            break;
+                        case 'find-path':
+                            if (!this.gameState.solvedPuzzles.mountain) {
+                                this.showPuzzle = true;
+                                message = "你发现了一个数学谜题！解谜后才能找到通往神庙的路径。";
+                            } else {
+                                message = "你已经找到了通往神庙的路径！";
+                            }
+                            break;
+                    }
+                    
+                    this.addMessage(message, 'success');
+                },
+                checkPuzzleAnswer(answer) {
+                    if (parseInt(answer) === this.puzzles.mountain.answer) {
+                        this.addMessage("答案正确！谜题解开了！", 'success');
+                        this.showPuzzle = false;
+                        
+                        this.$emit('update-game-state', { 
+                            solvedPuzzles: { ...this.gameState.solvedPuzzles, mountain: true }
+                        });
+                        
+                        this.progress = 100;
+                        
+                        // 解锁神庙
+                        if (!this.gameState.unlockedLocations.includes('temple-page')) {
+                            this.$emit('update-game-state', { 
+                                unlockedLocations: [...this.gameState.unlockedLocations, 'temple-page'] 
+                            });
+                        }
+                    } else {
+                        this.addMessage("答案错误，请再试一次！", 'danger');
+                    }
+                },
+                addMessage(text, type = '') {
+                    this.messages.push({ text, type, timestamp: new Date() });
+                }
+            },
+            mounted() {
+                // 恢复进度
+                if (this.gameState.hasMountainClue) this.progress = 33;
             }
-        }
-
-        // 初始化游戏
-        document.addEventListener('DOMContentLoaded', () => {
-            new TreasureGame();
+        });
+        
+        // 神庙页组件
+        Vue.component('temple-page', {
+            props: ['gameState'],
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>古老神庙</h2>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character" id="temple-character">🧭</div>
+                                <div class="object temple">🛕</div>
+                                <div class="object treasure" id="treasure-chest" :class="{ pulse: gameState.hasKey && gameState.hasSolvedPuzzle }">💎</div>
+                            </div>
+                        </div>
+                        <p>你来到了古老的神庙，这里充满了神秘的能量。</p>
+                        
+                        <!-- 数学谜题 -->
+                        <puzzle-component 
+                            v-if="showPuzzle"
+                            :puzzle="puzzles.temple"
+                            @submit-answer="checkPuzzleAnswer">
+                        </puzzle-component>
+                        
+                        <progress-bar 
+                            :progress="progress"
+                            :status-text="statusText">
+                        </progress-bar>
+                        <action-buttons 
+                            :actions="actions"
+                            @perform-action="performAction">
+                        </action-buttons>
+                        <message-log :messages="messages"></message-log>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'map-page')">返回地图</button>
+                            <button class="nav-btn" @click="$emit('navigate', 'treasure-page')" :disabled="!canProceed">查看宝藏</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    puzzles,
+                    actions: [
+                        { id: 'puzzle', text: '解开谜题' },
+                        { id: 'key', text: '寻找钥匙' },
+                        { id: 'open', text: '打开宝箱' }
+                    ],
+                    messages: [],
+                    progress: 0,
+                    statusText: '解开谜题...',
+                    showPuzzle: false
+                };
+            },
+            computed: {
+                canProceed() {
+                    return this.gameState.hasKey && this.gameState.hasSolvedPuzzle;
+                }
+            },
+            methods: {
+                performAction(action) {
+                    let message;
+                    
+                    switch(action) {
+                        case 'puzzle':
+                            if (!this.gameState.solvedPuzzles.temple) {
+                                this.showPuzzle = true;
+                                message = "你发现了一个古老的数学谜题！解谜后才能打开宝箱。";
+                            } else {
+                                message = "你已经解开了神庙的谜题！";
+                            }
+                            break;
+                        case 'key':
+                            if (this.gameState.hasKey) {
+                                message = "你已经有了钥匙！";
+                                this.progress = 66;
+                                this.statusText = "钥匙已准备！";
+                            } else {
+                                message = "你需要在洞穴中寻找钥匙！";
+                                this.addMessage(message, 'danger');
+                                return;
+                            }
+                            break;
+                        case 'open':
+                            if (this.gameState.hasKey && this.gameState.hasSolvedPuzzle) {
+                                message = "宝箱打开了！里面是传说中的智慧之石！";
+                                this.progress = 100;
+                                this.statusText = "宝藏找到！";
+                                
+                                // 解锁宝藏页
+                                if (!this.gameState.unlockedLocations.includes('treasure-page')) {
+                                    this.$emit('update-game-state', { 
+                                        unlockedLocations: [...this.gameState.unlockedLocations, 'treasure-page'] 
+                                    });
+                                }
+                            } else {
+                                message = "你需要先找到钥匙并解开谜题才能打开宝箱！";
+                                this.addMessage(message, 'danger');
+                                return;
+                            }
+                            break;
+                    }
+                    
+                    this.addMessage(message, 'success');
+                },
+                checkPuzzleAnswer(answer) {
+                    if (parseInt(answer) === this.puzzles.temple.answer) {
+                        this.addMessage("答案正确！谜题解开了！", 'success');
+                        this.showPuzzle = false;
+                        
+                        this.$emit('update-game-state', { 
+                            solvedPuzzles: { ...this.gameState.solvedPuzzles, temple: true },
+                            hasSolvedPuzzle: true
+                        });
+                        
+                        this.progress = 33;
+                    } else {
+                        this.addMessage("答案错误，请再试一次！", 'danger');
+                    }
+                },
+                addMessage(text, type = '') {
+                    this.messages.push({ text, type, timestamp: new Date() });
+                }
+            },
+            mounted() {
+                // 恢复进度
+                if (this.gameState.hasSolvedPuzzle) this.progress = 33;
+                if (this.gameState.hasKey) this.progress = 66;
+                if (this.gameState.hasKey && this.gameState.hasSolvedPuzzle) this.progress = 100;
+            }
+        });
+        
+        // 宝藏页组件
+        Vue.component('treasure-page', {
+            template: `
+                <div class="page active">
+                    <div class="container">
+                        <h2>宝藏发现</h2>
+                        <div class="scene">
+                            <div class="scene-content">
+                                <div class="character">🧭</div>
+                                <div class="object treasure treasure-glow" style="opacity: 1; transform: scale(1.5);">💎</div>
+                            </div>
+                        </div>
+                        <p>恭喜你！你成功找到了传说中的宝藏！</p>
+                        <div class="message-log">
+                            <div class="message success">你解开了所有谜题，找到了智慧之石！</div>
+                            <div class="message success">这颗宝石将赋予你无尽的知识和智慧！</div>
+                        </div>
+                        <div class="controls">
+                            <button @click="$emit('play-again')">再玩一次</button>
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+        
+        // 用户管理页组件
+        Vue.component('user-management', {
+            props: ['users'],
+            template: `
+                <div class="page active">
+                    <div class="container user-management">
+                        <h2>用户管理</h2>
+                        <div class="user-form">
+                            <div class="form-group">
+                                <label class="form-label">用户名</label>
+                                <input type="text" class="form-input" v-model="newUser.username">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">密码</label>
+                                <input type="password" class="form-input" v-model="newUser.password">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">邮箱</label>
+                                <input type="email" class="form-input" v-model="newUser.email">
+                            </div>
+                            <button @click="addUser">添加用户</button>
+                        </div>
+                        
+                        <h3>用户列表</h3>
+                        <div class="ranking-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>用户名</th>
+                                        <th>邮箱</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="user in users" :key="user.id">
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <button @click="deleteUser(user.id)">删除</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'cover-page')">返回首页</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    newUser: {
+                        username: '',
+                        password: '',
+                        email: ''
+                    }
+                };
+            },
+            methods: {
+                addUser() {
+                    if (this.newUser.username && this.newUser.password && this.newUser.email) {
+                        this.$emit('add-user', { ...this.newUser });
+                        this.newUser = { username: '', password: '', email: '' };
+                    }
+                },
+                deleteUser(userId) {
+                    this.$emit('delete-user', userId);
+                }
+            }
+        });
+        
+        // 排行页组件
+        Vue.component('ranking-page', {
+            props: ['rankings'],
+            template: `
+                <div class="page active">
+                    <div class="container ranking-page">
+                        <h2>游戏排行榜</h2>
+                        <div class="ranking-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>玩家</th>
+                                        <th>完成时间</th>
+                                        <th>得分</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(ranking, index) in rankings" :key="ranking.id">
+                                        <td class="ranking-position">{{ index + 1 }}</td>
+                                        <td>{{ ranking.player }}</td>
+                                        <td>{{ ranking.completionTime }}</td>
+                                        <td>{{ ranking.score }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="controls">
+                            <button class="nav-btn" @click="$emit('navigate', 'cover-page')">返回首页</button>
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+        
+        // 进度条组件
+        Vue.component('progress-bar', {
+            props: ['progress', 'statusText'],
+            template: `
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+                    </div>
+                    <div class="status-text">{{ statusText }}</div>
+                </div>
+            `
+        });
+        
+        // 动作按钮组件
+        Vue.component('action-buttons', {
+            props: ['actions'],
+            template: `
+                <div class="action-buttons">
+                    <button v-for="action in actions" 
+                            :key="action.id"
+                            class="action-btn" 
+                            :data-action="action.id"
+                            @click="$emit('perform-action', action.id)">
+                        {{ action.text }}
+                    </button>
+                </div>
+            `
+        });
+        
+        // 消息日志组件
+        Vue.component('message-log', {
+            props: ['messages'],
+            template: `
+                <div class="message-log">
+                    <div v-for="message in messages" 
+                         :key="message.timestamp"
+                         class="message" 
+                         :class="message.type">
+                        {{ message.text }}
+                    </div>
+                </div>
+            `
+        });
+        
+        // 谜题组件
+        Vue.component('puzzle-component', {
+            props: ['puzzle'],
+            template: `
+                <div class="puzzle-container">
+                    <h3>谜题</h3>
+                    <p class="puzzle-question">{{ puzzle.question }}</p>
+                    <div class="puzzle-options">
+                        <div v-for="option in puzzle.options" 
+                             :key="option"
+                             class="puzzle-option"
+                             @click="selectOption(option)">
+                            {{ option }}
+                        </div>
+                    </div>
+                    <input type="number" class="puzzle-input" v-model="userAnswer" placeholder="输入答案">
+                    <button class="puzzle-submit" @click="submitAnswer">提交答案</button>
+                </div>
+            `,
+            data() {
+                return {
+                    userAnswer: ''
+                };
+            },
+            methods: {
+                selectOption(option) {
+                    this.userAnswer = option;
+                },
+                submitAnswer() {
+                    this.$emit('submit-answer', this.userAnswer);
+                }
+            }
+        });
+        
+        // Vue实例
+        new Vue({
+            el: '#app',
+            data: {
+                currentPage: 'cover-page',
+                pages: [
+                    { id: 'cover-page' },
+                    { id: 'map-page' },
+                    { id: 'library-page' },
+                    { id: 'cave-page' },
+                    { id: 'mountain-page' },
+                    { id: 'temple-page' },
+                    { id: 'treasure-page' },
+                    { id: 'user-management' },
+                    { id: 'ranking-page' }
+                ],
+                gameState: { ...gameState },
+                musicEnabled: true,
+                muted: false,
+                users: [
+                    { id: 1, username: '探险家1号', password: '123456', email: 'explorer1@example.com' },
+                    { id: 2, username: '宝藏猎人', password: '654321', email: 'treasure@example.com' }
+                ],
+                rankings: [
+                    { id: 1, player: '探险家1号', completionTime: '25分钟', score: 950 },
+                    { id: 2, player: '宝藏猎人', completionTime: '30分钟', score: 880 },
+                    { id: 3, player: '冒险王', completionTime: '35分钟', score: 820 }
+                ],
+                nextUserId: 3
+            },
+            methods: {
+                navigateTo(page) {
+                    this.currentPage = page;
+                    this.gameState.currentPage = page;
+                    this.saveGameState();
+                },
+                updateGameState(updates) {
+                    this.gameState = { ...this.gameState, ...updates };
+                    this.saveGameState();
+                },
+                toggleMusic() {
+                    this.musicEnabled = !this.musicEnabled;
+                },
+                toggleMute() {
+                    this.muted = !this.muted;
+                },
+                addUser(user) {
+                    this.users.push({
+                        id: this.nextUserId++,
+                        ...user
+                    });
+                },
+                deleteUser(userId) {
+                    this.users = this.users.filter(user => user.id !== userId);
+                },
+                resetGame() {
+                    this.gameState = { ...gameState };
+                    this.currentPage = 'cover-page';
+                    localStorage.removeItem('treasureGameState');
+                },
+                saveGameState() {
+                    try {
+                        localStorage.setItem('treasureGameState', JSON.stringify(this.gameState));
+                    } catch (e) {
+                        console.error('保存游戏状态失败:', e);
+                    }
+                },
+                loadGameState() {
+                    try {
+                        const savedState = localStorage.getItem('treasureGameState');
+                        if (savedState) {
+                            this.gameState = { ...this.gameState, ...JSON.parse(savedState) };
+                            this.currentPage = this.gameState.currentPage;
+                        }
+                    } catch (e) {
+                        console.error('加载游戏状态失败:', e);
+                    }
+                }
+            },
+            mounted() {
+                this.loadGameState();
+            }
         });
     </script>
 </body>
